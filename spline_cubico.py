@@ -1,8 +1,7 @@
 import numpy as np
 
-
 # =====================================================
-# INGRESO DE DATOS
+# INGRESO DE DATOS - 1er Avance
 # =====================================================
 
 def ingresar_puntos():
