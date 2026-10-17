@@ -1,0 +1,122 @@
+SPLINELAB · INFORME DE EJECUCIÓN
+2026-10-17T13:07:46-05:00
+Método: spline cúbico natural / Gauss con pivoteo parcial escalado.
+Cálculo realizado con listas, ciclos y aritmética de Python.
+Nodos: 6 | Tramos: 5
+Estado: VERIFICADO
+
+01  DATOS Y DISTANCIAS ENTRE NODOS
+N nodos definen N − 1 tramos. Las abscisas deben ser estrictamente crecientes.
+hᵢ = xᵢ₊₁ − xᵢ     mᵢ = (yᵢ₊₁ − yᵢ) / hᵢ
+
+  i           xᵢ           yᵢ           hᵢ           mᵢ
+  0            0            1          0.2    -0.192308
+  1          0.2     0.961538          0.2    -0.497347
+  2          0.4     0.862069          0.2    -0.633874
+  3          0.6     0.735294          0.2     -0.62769
+  4          0.8     0.609756          0.2     -0.54878
+  5            1          0.5       —            —
+
+02  SISTEMA A·M = B
+Mᵢ representa S''(xᵢ).
+Frontera natural: M₀ = M final = 0.
+Interior: hᵢ₋₁Mᵢ₋₁ + 2(hᵢ₋₁ + hᵢ)Mᵢ + hᵢMᵢ₊₁ = 6(mᵢ − mᵢ₋₁).
+
+[           1           0           0           0           0           0 ] |            0
+[         0.2         0.8         0.2           0           0           0 ] |     -1.83024
+[           0         0.2         0.8         0.2           0           0 ] |    -0.819161
+[           0           0         0.2         0.8         0.2           0 ] |    0.0371048
+[           0           0           0         0.2         0.8         0.2 ] |     0.473458
+[           0           0           0           0           0           1 ] |            0
+
+03  ELIMINACIÓN DE GAUSS
+Se elige el mayor pivote relativo a la escala de su fila.
+Después de eliminar, se aplica sustitución regresiva.
+
+F2 ← F2 − (0.2) F1.
+F3 ← F3 − (0.25) F2.
+F4 ← F4 − (0.26666667) F3.
+F5 ← F5 − (0.26785714) F4.
+M5 = (0 − (0)) / (1) = 0
+M4 = (0.43769025 − (0)) / (0.74642857) = 0.58637928
+M3 = (0.13353173 − (0.11727586)) / (0.74666667) = 0.021771264
+M2 = (-0.36160087 − (0.0043542529)) / (0.75) = -0.48794017
+M1 = (-1.8302387 − (-0.097588034)) / (0.8) = -2.1658134
+M0 = (0 − (0)) / (1) = 0
+
+Sistema triangular [U | b]:
+
+[           1           0           0           0           0           0 ] |            0
+[           0         0.8         0.2           0           0           0 ] |     -1.83024
+[           0           0        0.75         0.2           0           0 ] |    -0.361601
+[           0           0           0    0.746667         0.2           0 ] |     0.133532
+[           0           0           0           0    0.746429         0.2 ] |      0.43769
+[           0           0           0           0           0           1 ] |            0
+
+04  SEGUNDAS DERIVADAS EN LOS NODOS
+M0 = 0
+M1 = -2.16581336627
+M2 = -0.487940168891
+M3 = 0.0217712644837
+M4 = 0.586379278571
+M5 = 0
+
+05  COEFICIENTES POR INTERVALO
+Sᵢ(x) = aᵢ(x−xᵢ)³ + bᵢ(x−xᵢ)² + cᵢ(x−xᵢ) + dᵢ
+aᵢ = (Mᵢ₊₁ − Mᵢ)/(6hᵢ)       bᵢ = Mᵢ/2
+cᵢ = mᵢ − hᵢ(2Mᵢ + Mᵢ₊₁)/6   dᵢ = yᵢ
+
+Intervalo 0: [0, 0.2]
+S0(x) = −1.804844(x − 0)³ − 0.1201139(x − 0) + 1
+
+Intervalo 1: [0.2, 0.4]
+S1(x) = 1.398228(x − 0.2)³ − 1.082907(x − 0.2)² − 0.3366953(x − 0.2) + 0.9615385
+
+Intervalo 2: [0.4, 0.6]
+S2(x) = 0.4247595(x − 0.4)³ − 0.2439701(x − 0.4)² − 0.6020706(x − 0.4) + 0.862069
+
+Intervalo 3: [0.6, 0.8]
+S3(x) = 0.4705067(x − 0.6)³ + 0.01088563(x − 0.6)² − 0.6486875(x − 0.6) + 0.7352941
+
+Intervalo 4: [0.8, 1]
+S4(x) = −0.4886494(x − 0.8)³ + 0.2931896(x − 0.8)² − 0.5878724(x − 0.8) + 0.6097561
+
+06  VALIDACIÓN
+Se comprueba interpolación, continuidad de S, S' y S'',
+las dos fronteras naturales y el residuo del sistema A·M − B.
+Criterio: error ≤ 10⁻⁸ × escala. La escala es al menos 1.
+En A·M = B se utiliza la suma de magnitudes de los términos de cada fila.
+Los valores mostrados se redondean; la validación usa los valores completos.
+
+DETALLE DE COMPROBACIONES
+
+OK | Interpolación · S0(x0) = y0 | error=0 | límite=1e-08
+OK | Interpolación · S0(x1) = y1 | error=0 | límite=1e-08
+OK | Continuidad · S en x1 | error=0 | límite=1e-08
+OK | Continuidad · S' en x1 | error=1.11022302463e-16 | límite=1e-08
+OK | Continuidad · S'' en x1 | error=4.4408920985e-16 | límite=2.16581336627e-08
+OK | Interpolación · S1(x1) = y1 | error=0 | límite=1e-08
+OK | Interpolación · S1(x2) = y2 | error=0 | límite=1e-08
+OK | Continuidad · S en x2 | error=0 | límite=1e-08
+OK | Continuidad · S' en x2 | error=1.11022302463e-16 | límite=1e-08
+OK | Continuidad · S'' en x2 | error=2.77555756156e-16 | límite=1e-08
+OK | Interpolación · S2(x2) = y2 | error=0 | límite=1e-08
+OK | Interpolación · S2(x3) = y3 | error=0 | límite=1e-08
+OK | Continuidad · S en x3 | error=0 | límite=1e-08
+OK | Continuidad · S' en x3 | error=1.11022302463e-16 | límite=1e-08
+OK | Continuidad · S'' en x3 | error=6.59194920871e-17 | límite=1e-08
+OK | Interpolación · S3(x3) = y3 | error=0 | límite=1e-08
+OK | Interpolación · S3(x4) = y4 | error=0 | límite=1e-08
+OK | Continuidad · S en x4 | error=0 | límite=1e-08
+OK | Continuidad · S' en x4 | error=0 | límite=1e-08
+OK | Continuidad · S'' en x4 | error=0 | límite=1e-08
+OK | Interpolación · S4(x4) = y4 | error=0 | límite=1e-08
+OK | Interpolación · S4(x5) = y5 | error=0 | límite=1e-08
+OK | Frontera natural · S''(x0) = 0 | error=0 | límite=1e-08
+OK | Frontera natural · S''(x final) = 0 | error=0 | límite=1e-08
+OK | Sistema · fila 1 de A·M = B | error=0 | límite=1e-08
+OK | Sistema · fila 2 de A·M = B | error=2.22044604925e-16 | límite=1.83023872679e-08
+OK | Sistema · fila 3 de A·M = B | error=0 | límite=1e-08
+OK | Sistema · fila 4 de A·M = B | error=6.93889390391e-18 | límite=1e-08
+OK | Sistema · fila 5 de A·M = B | error=0 | límite=1e-08
+OK | Sistema · fila 6 de A·M = B | error=0 | límite=1e-08

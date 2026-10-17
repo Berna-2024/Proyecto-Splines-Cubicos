@@ -1,0 +1,347 @@
+SPLINELAB · INFORME DE EJECUCIÓN
+2026-10-17T13:07:46-05:00
+Método: spline cúbico natural / Gauss con pivoteo parcial escalado.
+Cálculo realizado con listas, ciclos y aritmética de Python.
+Nodos: 21 | Tramos: 20
+Estado: VERIFICADO
+
+01  DATOS Y DISTANCIAS ENTRE NODOS
+N nodos definen N − 1 tramos. Las abscisas deben ser estrictamente crecientes.
+hᵢ = xᵢ₊₁ − xᵢ     mᵢ = (yᵢ₊₁ − yᵢ) / hᵢ
+
+  i           xᵢ           yᵢ           hᵢ           mᵢ
+  0          0.9          1.3          0.4          0.5
+  1          1.3          1.5          0.6     0.583333
+  2          1.9         1.85          0.2         1.25
+  3          2.1          2.1          0.5            1
+  4          2.6          2.6          0.4         0.25
+  5            3          2.7          0.9    -0.333333
+  6          3.9          2.4          0.5         -0.5
+  7          4.4         2.15          0.3    -0.333333
+  8          4.7         2.05          0.3     0.166667
+  9            5          2.1            1         0.15
+ 10            6         2.25            1         0.05
+ 11            7          2.3            1        -0.05
+ 12            8         2.25          1.2        -0.25
+ 13          9.2         1.95          1.3    -0.423077
+ 14         10.5          1.4          0.8       -0.625
+ 15         11.3          0.9          0.3    -0.666667
+ 16         11.6          0.7          0.4        -0.25
+ 17           12          0.6          0.6    -0.166667
+ 18         12.6          0.5          0.4        -0.25
+ 19           13          0.4          0.3         -0.5
+ 20         13.3         0.25       —            —
+
+02  SISTEMA A·M = B
+Mᵢ representa S''(xᵢ).
+Frontera natural: M₀ = M final = 0.
+Interior: hᵢ₋₁Mᵢ₋₁ + 2(hᵢ₋₁ + hᵢ)Mᵢ + hᵢMᵢ₊₁ = 6(mᵢ − mᵢ₋₁).
+
+[           1           0           0           0           0           0           0           0           0           0           0           0           0           0           0           0           0           0           0           0           0 ] |            0
+[         0.4           2         0.6           0           0           0           0           0           0           0           0           0           0           0           0           0           0           0           0           0           0 ] |          0.5
+[           0         0.6         1.6         0.2           0           0           0           0           0           0           0           0           0           0           0           0           0           0           0           0           0 ] |            4
+[           0           0         0.2         1.4         0.5           0           0           0           0           0           0           0           0           0           0           0           0           0           0           0           0 ] |         -1.5
+[           0           0           0         0.5         1.8         0.4           0           0           0           0           0           0           0           0           0           0           0           0           0           0           0 ] |         -4.5
+[           0           0           0           0         0.4         2.6         0.9           0           0           0           0           0           0           0           0           0           0           0           0           0           0 ] |         -3.5
+[           0           0           0           0           0         0.9         2.8         0.5           0           0           0           0           0           0           0           0           0           0           0           0           0 ] |           -1
+[           0           0           0           0           0           0         0.5         1.6         0.3           0           0           0           0           0           0           0           0           0           0           0           0 ] |            1
+[           0           0           0           0           0           0           0         0.3         1.2         0.3           0           0           0           0           0           0           0           0           0           0           0 ] |            3
+[           0           0           0           0           0           0           0           0         0.3         2.6           1           0           0           0           0           0           0           0           0           0           0 ] |         -0.1
+[           0           0           0           0           0           0           0           0           0           1           4           1           0           0           0           0           0           0           0           0           0 ] |         -0.6
+[           0           0           0           0           0           0           0           0           0           0           1           4           1           0           0           0           0           0           0           0           0 ] |         -0.6
+[           0           0           0           0           0           0           0           0           0           0           0           1         4.4         1.2           0           0           0           0           0           0           0 ] |         -1.2
+[           0           0           0           0           0           0           0           0           0           0           0           0         1.2           5         1.3           0           0           0           0           0           0 ] |     -1.03846
+[           0           0           0           0           0           0           0           0           0           0           0           0           0         1.3         4.2         0.8           0           0           0           0           0 ] |     -1.21154
+[           0           0           0           0           0           0           0           0           0           0           0           0           0           0         0.8         2.2         0.3           0           0           0           0 ] |        -0.25
+[           0           0           0           0           0           0           0           0           0           0           0           0           0           0           0         0.3         1.4         0.4           0           0           0 ] |          2.5
+[           0           0           0           0           0           0           0           0           0           0           0           0           0           0           0           0         0.4           2         0.6           0           0 ] |          0.5
+[           0           0           0           0           0           0           0           0           0           0           0           0           0           0           0           0           0         0.6           2         0.4           0 ] |         -0.5
+[           0           0           0           0           0           0           0           0           0           0           0           0           0           0           0           0           0           0         0.4         1.4         0.3 ] |         -1.5
+[           0           0           0           0           0           0           0           0           0           0           0           0           0           0           0           0           0           0           0           0           1 ] |            0
+
+03  ELIMINACIÓN DE GAUSS
+Se elige el mayor pivote relativo a la escala de su fila.
+Después de eliminar, se aplica sustitución regresiva.
+
+F2 ← F2 − (0.4) F1.
+F3 ← F3 − (0.3) F2.
+F4 ← F4 − (0.14084507) F3.
+F5 ← F5 − (0.36447639) F4.
+F6 ← F6 − (0.24725519) F5.
+F7 ← F7 − (0.35984197) F6.
+F8 ← F8 − (0.20192701) F7.
+F9 ← F9 − (0.20012855) F8.
+F10 ← F10 − (0.2631668) F9.
+F11 ← F11 − (0.39666013) F10.
+F12 ← F12 − (0.27752031) F11.
+F13 ← F13 − (0.26863813) F12.
+F14 ← F14 − (0.29046112) F13.
+F15 ← F15 − (0.27948294) F14.
+F16 ← F16 − (0.20851404) F15.
+F17 ← F17 − (0.14755147) F16.
+F18 ← F18 − (0.29504301) F17.
+F19 ← F19 − (0.31881269) F18.
+F20 ← F20 − (0.2211518) F19.
+M20 = (0 − (0)) / (1) = 0
+M19 = (-1.4062995 − (0)) / (1.3115393) = -1.0722512
+M18 = (-0.42369293 − (-0.42890047)) / (1.8087124) = 0.0028791452
+M17 = (-0.23934766 − (0.0017274871)) / (1.8819828) = -0.12809636
+M16 = (2.5058979 − (-0.051238544)) / (1.3557346) = 1.8861631
+M15 = (-0.039972052 − (0.56584893)) / (2.0331888) = -0.29796593
+M14 = (-1.0072605 − (-0.23837274)) / (3.8366722) = -0.20040486
+M13 = (-0.73091396 − (-0.26052631)) / (4.6514467) = -0.10112717
+M12 = (-1.0588253 − (-0.12135261)) / (4.1313619) = -0.22691614
+M11 = (-0.52552 − (-0.22691614)) / (3.7224797) = -0.080216383
+M10 = (-0.26837677 − (-0.080216383)) / (3.6033399) = -0.052218328
+M9 = (-0.83603874 − (-0.052218328)) / (2.52105) = -0.3109103
+M8 = (2.7968526 − (-0.093273091)) / (1.1399614) = 2.5352837
+M7 = (1.0150847 − (0.76058512)) / (1.4990365) = 0.16977541
+M6 = (-0.0747035 − (0.084887706)) / (2.4761422) = -0.06445155
+M5 = (-2.5713968 − (-0.058006395)) / (2.5010979) = -1.0049148
+M4 = (-3.7556468 − (-0.40196594)) / (1.6177618) = -2.0730375
+M3 = (-2.0422535 − (-1.0365187)) / (1.371831) = -0.73313315
+M2 = (3.85 − (-0.14662663)) / (1.42) = 2.8145258
+M1 = (0.5 − (1.6887155)) / (2) = -0.59435774
+M0 = (0 − (0)) / (1) = 0
+
+Sistema triangular [U | b]:
+
+[           1           0           0           0           0           0           0           0           0           0           0           0           0           0           0           0           0           0           0           0           0 ] |            0
+[           0           2         0.6           0           0           0           0           0           0           0           0           0           0           0           0           0           0           0           0           0           0 ] |          0.5
+[           0           0        1.42         0.2           0           0           0           0           0           0           0           0           0           0           0           0           0           0           0           0           0 ] |         3.85
+[           0           0           0     1.37183         0.5           0           0           0           0           0           0           0           0           0           0           0           0           0           0           0           0 ] |     -2.04225
+[           0           0           0           0     1.61776         0.4           0           0           0           0           0           0           0           0           0           0           0           0           0           0           0 ] |     -3.75565
+[           0           0           0           0           0      2.5011         0.9           0           0           0           0           0           0           0           0           0           0           0           0           0           0 ] |      -2.5714
+[           0           0           0           0           0           0     2.47614         0.5           0           0           0           0           0           0           0           0           0           0           0           0           0 ] |   -0.0747035
+[           0           0           0           0           0           0           0     1.49904         0.3           0           0           0           0           0           0           0           0           0           0           0           0 ] |      1.01508
+[           0           0           0           0           0           0           0           0     1.13996         0.3           0           0           0           0           0           0           0           0           0           0           0 ] |      2.79685
+[           0           0           0           0           0           0           0           0           0     2.52105           1           0           0           0           0           0           0           0           0           0           0 ] |    -0.836039
+[           0           0           0           0           0           0           0           0           0           0     3.60334           1           0           0           0           0           0           0           0           0           0 ] |    -0.268377
+[           0           0           0           0           0           0           0           0           0           0           0     3.72248           1           0           0           0           0           0           0           0           0 ] |     -0.52552
+[           0           0           0           0           0           0           0           0           0           0           0           0     4.13136         1.2           0           0           0           0           0           0           0 ] |     -1.05883
+[           0           0           0           0           0           0           0           0           0           0           0           0           0     4.65145         1.3           0           0           0           0           0           0 ] |    -0.730914
+[           0           0           0           0           0           0           0           0           0           0           0           0           0           0     3.83667         0.8           0           0           0           0           0 ] |     -1.00726
+[           0           0           0           0           0           0           0           0           0           0           0           0           0           0           0     2.03319         0.3           0           0           0           0 ] |   -0.0399721
+[           0           0           0           0           0           0           0           0           0           0           0           0           0           0           0           0     1.35573         0.4           0           0           0 ] |       2.5059
+[           0           0           0           0           0           0           0           0           0           0           0           0           0           0           0           0           0     1.88198         0.6           0           0 ] |    -0.239348
+[           0           0           0           0           0           0           0           0           0           0           0           0           0           0           0           0           0           0     1.80871         0.4           0 ] |    -0.423693
+[           0           0           0           0           0           0           0           0           0           0           0           0           0           0           0           0           0           0           0     1.31154         0.3 ] |      -1.4063
+[           0           0           0           0           0           0           0           0           0           0           0           0           0           0           0           0           0           0           0           0           1 ] |            0
+
+04  SEGUNDAS DERIVADAS EN LOS NODOS
+M0 = 0
+M1 = -0.594357738843
+M2 = 2.81452579614
+M3 = -0.733133152629
+M4 = -2.0730374911
+M5 = -1.00491484927
+M6 = -0.0644515504971
+M7 = 0.169775411478
+M8 = 2.53528372295
+M9 = -0.310910303271
+M10 = -0.0522183283801
+M11 = -0.0802163832087
+M12 = -0.226916138785
+M13 = -0.10112717178
+M14 = -0.200404856167
+M15 = -0.297965927901
+M16 = 1.88616308772
+M17 = -0.128096361105
+M18 = 0.00287914519995
+M19 = -1.07225118434
+M20 = 0
+
+05  COEFICIENTES POR INTERVALO
+Sᵢ(x) = aᵢ(x−xᵢ)³ + bᵢ(x−xᵢ)² + cᵢ(x−xᵢ) + dᵢ
+aᵢ = (Mᵢ₊₁ − Mᵢ)/(6hᵢ)       bᵢ = Mᵢ/2
+cᵢ = mᵢ − hᵢ(2Mᵢ + Mᵢ₊₁)/6   dᵢ = yᵢ
+
+Intervalo 0: [0.9, 1.3]
+S0(x) = −0.2476491(x − 0.9)³ + 0.5396238(x − 0.9) + 1.3
+
+Intervalo 1: [1.3, 1.9]
+S1(x) = 0.9469121(x − 1.3)³ − 0.2971789(x − 1.3)² + 0.4207523(x − 1.3) + 1.5
+
+Intervalo 2: [1.9, 2.1]
+S2(x) = −2.956382(x − 1.9)³ + 1.407263(x − 1.9)² + 1.086803(x − 1.9) + 1.85
+
+Intervalo 3: [2.1, 2.6]
+S3(x) = −0.4466348(x − 2.1)³ − 0.3665666(x − 2.1)² + 1.294942(x − 2.1) + 2.1
+
+Intervalo 4: [2.6, 3]
+S4(x) = 0.4450511(x − 2.6)³ − 1.036519(x − 2.6)² + 0.5933993(x − 2.6) + 2.6
+
+Intervalo 5: [3, 3.9]
+S5(x) = 0.1741599(x − 3)³ − 0.5024574(x − 3)² − 0.02219115(x − 3) + 2.7
+
+Intervalo 6: [3.9, 4.4]
+S6(x) = 0.07807565(x − 3.9)³ − 0.03222578(x − 3.9)² − 0.503406(x − 3.9) + 2.4
+
+Intervalo 7: [4.4, 4.7]
+S7(x) = 1.314171(x − 4.4)³ + 0.08488771(x − 4.4)² − 0.4770751(x − 4.4) + 2.15
+
+Intervalo 8: [4.7, 5]
+S8(x) = −1.581219(x − 4.7)³ + 1.267642(x − 4.7)² − 0.07131619(x − 4.7) + 2.05
+
+Intervalo 9: [5, 6]
+S9(x) = 0.04311533(x − 5)³ − 0.1554552(x − 5)² + 0.2623398(x − 5) + 2.1
+
+Intervalo 10: [6, 7]
+S10(x) = −0.004666342(x − 6)³ − 0.02610916(x − 6)² + 0.08077551(x − 6) + 2.25
+
+Intervalo 11: [7, 8]
+S11(x) = −0.02444996(x − 7)³ − 0.04010819(x − 7)² + 0.01455815(x − 7) + 2.3
+
+Intervalo 12: [8, 9.2]
+S12(x) = 0.01747069(x − 8)³ − 0.1134581(x − 8)² − 0.1390081(x − 8) + 2.25
+
+Intervalo 13: [9.2, 10.5]
+S13(x) = −0.01272791(x − 9.2)³ − 0.05056359(x − 9.2)² − 0.3358341(x − 9.2) + 1.95
+
+Intervalo 14: [10.5, 11.3]
+S14(x) = −0.02032522(x − 10.5)³ − 0.1002024(x − 10.5)² − 0.5318299(x − 10.5) + 1.4
+
+Intervalo 15: [11.3, 11.6]
+S15(x) = 1.213405(x − 11.3)³ − 0.148983(x − 11.3)² − 0.7311782(x − 11.3) + 0.9
+
+Intervalo 16: [11.6, 12]
+S16(x) = −0.8392748(x − 11.6)³ + 0.9430815(x − 11.6)² − 0.4929487(x − 11.6) + 0.7
+
+Intervalo 17: [12, 12.6]
+S17(x) = 0.03638209(x − 12)³ − 0.06404818(x − 12)² − 0.1413353(x − 12) + 0.6
+
+Intervalo 18: [12.6, 13]
+S18(x) = −0.447971(x − 12.6)³ + 0.001439573(x − 12.6)² − 0.1789005(x − 12.6) + 0.5
+
+Intervalo 19: [13, 13.3]
+S19(x) = 0.5956951(x − 13)³ − 0.5361256(x − 13)² − 0.3927749(x − 13) + 0.4
+
+06  VALIDACIÓN
+Se comprueba interpolación, continuidad de S, S' y S'',
+las dos fronteras naturales y el residuo del sistema A·M − B.
+Criterio: error ≤ 10⁻⁸ × escala. La escala es al menos 1.
+En A·M = B se utiliza la suma de magnitudes de los términos de cada fila.
+Los valores mostrados se redondean; la validación usa los valores completos.
+
+DETALLE DE COMPROBACIONES
+
+OK | Interpolación · S0(x0) = y0 | error=0 | límite=1.3e-08
+OK | Interpolación · S0(x1) = y1 | error=0 | límite=1.5e-08
+OK | Continuidad · S en x1 | error=0 | límite=1.5e-08
+OK | Continuidad · S' en x1 | error=0 | límite=1e-08
+OK | Continuidad · S'' en x1 | error=1.11022302463e-16 | límite=1e-08
+OK | Interpolación · S1(x1) = y1 | error=0 | límite=1.5e-08
+OK | Interpolación · S1(x2) = y2 | error=0 | límite=1.85e-08
+OK | Continuidad · S en x2 | error=0 | límite=1.85e-08
+OK | Continuidad · S' en x2 | error=2.22044604925e-16 | límite=1.08680271868e-08
+OK | Continuidad · S'' en x2 | error=4.4408920985e-16 | límite=2.81452579614e-08
+OK | Interpolación · S2(x2) = y2 | error=0 | límite=1.85e-08
+OK | Interpolación · S2(x3) = y3 | error=0 | límite=2.1e-08
+OK | Continuidad · S en x3 | error=0 | límite=2.1e-08
+OK | Continuidad · S' en x3 | error=0 | límite=1.29494198303e-08
+OK | Continuidad · S'' en x3 | error=1.11022302463e-16 | límite=1e-08
+OK | Interpolación · S3(x3) = y3 | error=0 | límite=2.1e-08
+OK | Interpolación · S3(x4) = y4 | error=0 | límite=2.6e-08
+OK | Continuidad · S en x4 | error=0 | límite=2.6e-08
+OK | Continuidad · S' en x4 | error=0 | límite=1e-08
+OK | Continuidad · S'' en x4 | error=0 | límite=2.0730374911e-08
+OK | Interpolación · S4(x4) = y4 | error=0 | límite=2.6e-08
+OK | Interpolación · S4(x5) = y5 | error=0 | límite=2.7e-08
+OK | Continuidad · S en x5 | error=0 | límite=2.7e-08
+OK | Continuidad · S' en x5 | error=1.11022302463e-16 | límite=1e-08
+OK | Continuidad · S'' en x5 | error=0 | límite=1.00491484927e-08
+OK | Interpolación · S5(x5) = y5 | error=0 | límite=2.7e-08
+OK | Interpolación · S5(x6) = y6 | error=0 | límite=2.4e-08
+OK | Continuidad · S en x6 | error=0 | límite=2.4e-08
+OK | Continuidad · S' en x6 | error=0 | límite=1e-08
+OK | Continuidad · S'' en x6 | error=1.2490009027e-16 | límite=1e-08
+OK | Interpolación · S6(x6) = y6 | error=0 | límite=2.4e-08
+OK | Interpolación · S6(x7) = y7 | error=0 | límite=2.15e-08
+OK | Continuidad · S en x7 | error=0 | límite=2.15e-08
+OK | Continuidad · S' en x7 | error=0 | límite=1e-08
+OK | Continuidad · S'' en x7 | error=2.77555756156e-17 | límite=1e-08
+OK | Interpolación · S7(x7) = y7 | error=0 | límite=2.15e-08
+OK | Interpolación · S7(x8) = y8 | error=0 | límite=2.05e-08
+OK | Continuidad · S en x8 | error=0 | límite=2.05e-08
+OK | Continuidad · S' en x8 | error=2.77555756156e-17 | límite=1e-08
+OK | Continuidad · S'' en x8 | error=0 | límite=2.53528372295e-08
+OK | Interpolación · S8(x8) = y8 | error=0 | límite=2.05e-08
+OK | Interpolación · S8(x9) = y9 | error=0 | límite=2.1e-08
+OK | Continuidad · S en x9 | error=0 | límite=2.1e-08
+OK | Continuidad · S' en x9 | error=5.55111512313e-17 | límite=1e-08
+OK | Continuidad · S'' en x9 | error=5.55111512313e-17 | límite=1e-08
+OK | Interpolación · S9(x9) = y9 | error=0 | límite=2.1e-08
+OK | Interpolación · S9(x10) = y10 | error=0 | límite=2.25e-08
+OK | Continuidad · S en x10 | error=0 | límite=2.25e-08
+OK | Continuidad · S' en x10 | error=1.38777878078e-17 | límite=1e-08
+OK | Continuidad · S'' en x10 | error=1.38777878078e-17 | límite=1e-08
+OK | Interpolación · S10(x10) = y10 | error=0 | límite=2.25e-08
+OK | Interpolación · S10(x11) = y11 | error=0 | límite=2.3e-08
+OK | Continuidad · S en x11 | error=0 | límite=2.3e-08
+OK | Continuidad · S' en x11 | error=0 | límite=1e-08
+OK | Continuidad · S'' en x11 | error=0 | límite=1e-08
+OK | Interpolación · S11(x11) = y11 | error=0 | límite=2.3e-08
+OK | Interpolación · S11(x12) = y12 | error=0 | límite=2.25e-08
+OK | Continuidad · S en x12 | error=0 | límite=2.25e-08
+OK | Continuidad · S' en x12 | error=5.55111512313e-17 | límite=1e-08
+OK | Continuidad · S'' en x12 | error=0 | límite=1e-08
+OK | Interpolación · S12(x12) = y12 | error=0 | límite=2.25e-08
+OK | Interpolación · S12(x13) = y13 | error=0 | límite=1.95e-08
+OK | Continuidad · S en x13 | error=0 | límite=1.95e-08
+OK | Continuidad · S' en x13 | error=0 | límite=1e-08
+OK | Continuidad · S'' en x13 | error=0 | límite=1e-08
+OK | Interpolación · S13(x13) = y13 | error=0 | límite=1.95e-08
+OK | Interpolación · S13(x14) = y14 | error=0 | límite=1.4e-08
+OK | Continuidad · S en x14 | error=0 | límite=1.4e-08
+OK | Continuidad · S' en x14 | error=1.11022302463e-16 | límite=1e-08
+OK | Continuidad · S'' en x14 | error=2.77555756156e-17 | límite=1e-08
+OK | Interpolación · S14(x14) = y14 | error=0 | límite=1.4e-08
+OK | Interpolación · S14(x15) = y15 | error=0 | límite=1e-08
+OK | Continuidad · S en x15 | error=0 | límite=1e-08
+OK | Continuidad · S' en x15 | error=0 | límite=1e-08
+OK | Continuidad · S'' en x15 | error=0 | límite=1e-08
+OK | Interpolación · S15(x15) = y15 | error=0 | límite=1e-08
+OK | Interpolación · S15(x16) = y16 | error=0 | límite=1e-08
+OK | Continuidad · S en x16 | error=0 | límite=1e-08
+OK | Continuidad · S' en x16 | error=0 | límite=1e-08
+OK | Continuidad · S'' en x16 | error=0 | límite=1.88616308772e-08
+OK | Interpolación · S16(x16) = y16 | error=0 | límite=1e-08
+OK | Interpolación · S16(x17) = y17 | error=0 | límite=1e-08
+OK | Continuidad · S en x17 | error=0 | límite=1e-08
+OK | Continuidad · S' en x17 | error=5.55111512313e-17 | límite=1e-08
+OK | Continuidad · S'' en x17 | error=2.22044604925e-16 | límite=1e-08
+OK | Interpolación · S17(x17) = y17 | error=0 | límite=1e-08
+OK | Interpolación · S17(x18) = y18 | error=0 | límite=1e-08
+OK | Continuidad · S en x18 | error=0 | límite=1e-08
+OK | Continuidad · S' en x18 | error=0 | límite=1e-08
+OK | Continuidad · S'' en x18 | error=6.07153216592e-18 | límite=1e-08
+OK | Interpolación · S18(x18) = y18 | error=0 | límite=1e-08
+OK | Interpolación · S18(x19) = y19 | error=0 | límite=1e-08
+OK | Continuidad · S en x19 | error=0 | límite=1e-08
+OK | Continuidad · S' en x19 | error=0 | límite=1e-08
+OK | Continuidad · S'' en x19 | error=0 | límite=1.07225118434e-08
+OK | Interpolación · S19(x19) = y19 | error=0 | límite=1e-08
+OK | Interpolación · S19(x20) = y20 | error=0 | límite=1e-08
+OK | Frontera natural · S''(x0) = 0 | error=0 | límite=1e-08
+OK | Frontera natural · S''(x final) = 0 | error=0 | límite=1e-08
+OK | Sistema · fila 1 de A·M = B | error=0 | límite=1e-08
+OK | Sistema · fila 2 de A·M = B | error=0 | límite=2.87743095537e-08
+OK | Sistema · fila 3 de A·M = B | error=4.4408920985e-16 | límite=5.00648254766e-08
+OK | Sistema · fila 4 de A·M = B | error=0 | límite=2.62581031846e-08
+OK | Sistema · fila 5 de A·M = B | error=8.881784197e-16 | límite=4.5e-08
+OK | Sistema · fila 6 de A·M = B | error=4.4408920985e-16 | límite=3.5e-08
+OK | Sistema · fila 7 de A·M = B | error=1.11022302463e-16 | límite=1.16977541148e-08
+OK | Sistema · fila 8 de A·M = B | error=0 | límite=1.0644515505e-08
+OK | Sistema · fila 9 de A·M = B | error=0 | límite=3.18654618196e-08
+OK | Sistema · fila 10 de A·M = B | error=9.71445146547e-17 | límite=1.62117023377e-08
+OK | Sistema · fila 11 de A·M = B | error=1.11022302463e-16 | límite=1e-08
+OK | Sistema · fila 12 de A·M = B | error=0 | límite=1e-08
+OK | Sistema · fila 13 de A·M = B | error=0 | límite=1.2e-08
+OK | Sistema · fila 14 de A·M = B | error=0 | límite=1.03846153846e-08
+OK | Sistema · fila 15 de A·M = B | error=0 | límite=1.21153846154e-08
+OK | Sistema · fila 16 de A·M = B | error=1.11022302463e-16 | límite=1.38169785263e-08
+OK | Sistema · fila 17 de A·M = B | error=0 | límite=2.78125664562e-08
+OK | Sistema · fila 18 de A·M = B | error=0 | límite=1.01238544442e-08
+OK | Sistema · fila 19 de A·M = B | error=0 | límite=1e-08
+OK | Sistema · fila 20 de A·M = B | error=0 | límite=1.50230331616e-08
+OK | Sistema · fila 21 de A·M = B | error=0 | límite=1e-08

@@ -1,0 +1,34 @@
+[
+  {
+    "ejemplo": "Ejemplo del curso · x⁴",
+    "nodos": 4,
+    "tramos": 3,
+    "condiciones": 18,
+    "verificado": true,
+    "error_absoluto_maximo": 7.105427357601002e-15
+  },
+  {
+    "ejemplo": "Contorno del pato",
+    "nodos": 21,
+    "tramos": 20,
+    "condiciones": 120,
+    "verificado": true,
+    "error_absoluto_maximo": 8.881784197001252e-16
+  },
+  {
+    "ejemplo": "Función · 1 / (1 + x²)",
+    "nodos": 6,
+    "tramos": 5,
+    "condiciones": 30,
+    "verificado": true,
+    "error_absoluto_maximo": 4.440892098500626e-16
+  },
+  {
+    "ejemplo": "Datos lineales",
+    "nodos": 5,
+    "tramos": 4,
+    "condiciones": 24,
+    "verificado": true,
+    "error_absoluto_maximo": 0.0
+  }
+]

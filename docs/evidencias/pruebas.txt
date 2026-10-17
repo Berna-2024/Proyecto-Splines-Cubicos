@@ -1,0 +1,34 @@
+test_controles_visibles_en_tamano_minimo (tests.test_interfaz.InterfazTests.test_controles_visibles_en_tamano_minimo) ... ok
+test_editar_invalida_resultado_anterior (tests.test_interfaz.InterfazTests.test_editar_invalida_resultado_anterior) ... ok
+test_error_y_recuperacion (tests.test_interfaz.InterfazTests.test_error_y_recuperacion) ... ok
+test_evaluacion_y_fuera_de_dominio (tests.test_interfaz.InterfazTests.test_evaluacion_y_fuera_de_dominio) ... ok
+test_importar_y_exportar_archivos (tests.test_interfaz.InterfazTests.test_importar_y_exportar_archivos) ... ok
+test_limite_de_puntos (tests.test_interfaz.InterfazTests.test_limite_de_puntos) ... ok
+test_todos_los_ejemplos_y_pestanas (tests.test_interfaz.InterfazTests.test_todos_los_ejemplos_y_pestanas) ... ok
+test_intercambio_de_filas_y_solucion (tests.test_matematica.AlgebraTests.test_intercambio_de_filas_y_solucion) ... ok
+test_pivoteo_con_filas_de_distinta_escala (tests.test_matematica.AlgebraTests.test_pivoteo_con_filas_de_distinta_escala) ... ok
+test_singular_no_se_resuelve_silenciosamente (tests.test_matematica.AlgebraTests.test_singular_no_se_resuelve_silenciosamente) ... ok
+test_sistema_invalido (tests.test_matematica.AlgebraTests.test_sistema_invalido) ... ok
+test_calculo_solo_usa_biblioteca_estandar (tests.test_matematica.EntradaYPresentacionTests.test_calculo_solo_usa_biblioteca_estandar) ... ok
+test_coma_decimal_cabecera_y_columnas (tests.test_matematica.EntradaYPresentacionTests.test_coma_decimal_cabecera_y_columnas) ... ok
+test_consola_valida_entrada_y_resuelve (tests.test_matematica.EntradaYPresentacionTests.test_consola_valida_entrada_y_resuelve) ... ok
+test_errores_de_texto_indican_linea (tests.test_matematica.EntradaYPresentacionTests.test_errores_de_texto_indican_linea) ... ok
+test_importar_entrada_no_inicia_programa (tests.test_matematica.EntradaYPresentacionTests.test_importar_entrada_no_inicia_programa) ... ok
+test_informe_incluye_datos_y_verificacion (tests.test_matematica.EntradaYPresentacionTests.test_informe_incluye_datos_y_verificacion) ... ok
+test_polinomio_con_nodo_negativo_y_signos (tests.test_matematica.EntradaYPresentacionTests.test_polinomio_con_nodo_negativo_y_signos) ... ok
+test_constante_y_no_uniforme (tests.test_matematica.SplineTests.test_constante_y_no_uniforme) ... ok
+test_dos_puntos_producen_recta (tests.test_matematica.SplineTests.test_dos_puntos_producen_recta) ... ok
+test_ejemplo_x4_del_curso (tests.test_matematica.SplineTests.test_ejemplo_x4_del_curso) ... ok
+test_limite_de_interfaz_80_puntos (tests.test_matematica.SplineTests.test_limite_de_interfaz_80_puntos) ... ok
+test_muestras_sin_duplicar_nodos_compartidos (tests.test_matematica.SplineTests.test_muestras_sin_duplicar_nodos_compartidos) ... ok
+test_no_se_extrapola_y_se_admite_el_extremo_final (tests.test_matematica.SplineTests.test_no_se_extrapola_y_se_admite_el_extremo_final) ... ok
+test_propiedades_en_datos_no_uniformes (tests.test_matematica.SplineTests.test_propiedades_en_datos_no_uniformes) ... ok
+test_se_detectan_resultados_alterados (tests.test_matematica.SplineTests.test_se_detectan_resultados_alterados) ... ok
+test_se_rechazan_datos_invalidos (tests.test_matematica.SplineTests.test_se_rechazan_datos_invalidos) ... ok
+test_todos_los_ejemplos (tests.test_matematica.SplineTests.test_todos_los_ejemplos) ... ok
+test_tres_nodos_con_solucion_a_mano (tests.test_matematica.SplineTests.test_tres_nodos_con_solucion_a_mano) ... ok
+
+----------------------------------------------------------------------
+Ran 29 tests in 1.383s
+
+OK
