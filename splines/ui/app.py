@@ -1,12 +1,14 @@
 """Aplicación Tkinter: entrada, resultados, gráfica y evidencia matemática."""
 
 import tkinter as tk
+from math import isfinite
 from pathlib import Path
 from tkinter import filedialog, ttk
 
 from ..ejemplos import EJEMPLOS
 from ..entrada import leer_puntos, numero
 from ..exportacion import grafica_svg
+from ..lagrange import calcular_lagrange
 from ..matematica import ErrorSpline, calcular_spline
 from ..presentacion import formato, informe, polinomio, procedimiento
 from . import tema
@@ -33,6 +35,7 @@ class AplicacionSpline(tk.Tk):
         self.rowconfigure(1, weight=1)
         tema.configurar(self)
         self.spline = None
+        self.lagrange = None
         self._cargando = False
         self.contexto = ""
         self._crear_interfaz()
@@ -92,7 +95,7 @@ class AplicacionSpline(tk.Tk):
         pie.grid(row=2, column=0, sticky="ew", pady=(0, 12))
         self.estado = etiqueta(pie, "Listo para calcular.", 9, tema.SECUNDARIO, fondo=tema.FONDO)
         self.estado.pack(side="left")
-        etiqueta(pie, "SEGUNDA ENTREGA · MA331", 8, tema.SECUNDARIO, fondo=tema.FONDO).pack(side="right")
+        etiqueta(pie, "PROYECTO FINAL · MA331", 8, tema.SECUNDARIO, fondo=tema.FONDO).pack(side="right")
 
     def _crear_entrada(self, parent):
         panel = tk.Frame(parent, bg="white", padx=18, pady=20,
@@ -146,6 +149,10 @@ class AplicacionSpline(tk.Tk):
         top = tk.Frame(frame, bg="white")
         top.grid(row=0, column=0, sticky="ew")
         etiqueta(top, "Una curva continua, tramo a tramo", 12, negrita=True).pack(side="left")
+        self.mostrar_lagrange = tk.BooleanVar(value=True)
+        self.control_lagrange = ttk.Checkbutton(top, text="┄ Lagrange", variable=self.mostrar_lagrange,
+                                                command=self._alternar_lagrange, state="disabled")
+        self.control_lagrange.pack(side="right")
         etiqueta(top, "● Nodos   ━ Spline", 9, tema.PRIMARIO).pack(side="right")
         self.contexto_label = etiqueta(frame, "", 9, tema.SECUNDARIO, anchor="w", justify="left", wraplength=720)
         self.contexto_label.grid(row=1, column=0, sticky="ew", pady=(5, 0))
@@ -165,7 +172,7 @@ class AplicacionSpline(tk.Tk):
         self.guardar_grafica_boton = ttk.Button(consulta, text="Guardar gráfica", command=self.guardar_grafica, state="disabled")
         self.guardar_grafica_boton.grid(row=0, column=3, sticky="e", padx=(12, 0))
         self.resultado_consulta = etiqueta(consulta, "Elige un valor dentro del dominio.", 10,
-                                          tema.SECUNDARIO, fondo="#F6F7FB", anchor="w")
+                                          tema.SECUNDARIO, fondo="#F6F7FB", anchor="w", justify="left")
         self.resultado_consulta.grid(row=1, column=0, columnspan=4, sticky="ew", pady=(8, 0))
 
     def _tabla(self, parent, columnas, anchos):
@@ -239,6 +246,8 @@ class AplicacionSpline(tk.Tk):
 
     def _invalidar(self):
         self.spline = None
+        self.lagrange = None
+        self.control_lagrange.configure(state="disabled")
         self.exportar_boton.configure(state="disabled")
         self.evaluar_boton.configure(state="disabled")
         self.guardar_grafica_boton.configure(state="disabled")
@@ -301,12 +310,32 @@ class AplicacionSpline(tk.Tk):
             self.estado.configure(text="Revisa los datos indicados para continuar.")
             return
         self.spline = spline
+        self.lagrange = None
+        muestras_lagrange = []
+        aviso = ""
+        try:
+            candidato = calcular_lagrange(zip(spline.x, spline.y))
+            if not all(c.cumple for c in candidato.comprobaciones):
+                raise ErrorSpline("Lagrange no interpola los nodos dentro de la tolerancia.")
+            muestras_lagrange = candidato.muestrear(x for x, _ in spline.muestrear())
+            self.lagrange = candidato
+            if len(spline.x) > 20:
+                aviso = "Lagrange global con muchos nodos puede oscilar y perder precisión."
+        except ErrorSpline as exc:
+            aviso = f"Comparación desactivada: {exc} El spline sigue disponible."
+        self.control_lagrange.configure(state="normal" if self.lagrange else "disabled")
+        self.mensaje.configure(text=aviso)
+        self.resultado_consulta.configure(text="Elige un valor dentro del dominio.", fg=tema.SECUNDARIO)
         self.metricas[0].configure(text=str(len(spline.x)))
         self.metricas[1].configure(text=str(len(spline.tramos)))
         self.metricas[2].configure(text="Verificado" if spline.valido else "Revisar",
                                   fg=tema.EXITO if spline.valido else tema.ERROR)
-        self.contexto_label.configure(text=self.contexto or "Datos ingresados por el usuario.")
-        self.grafica.establecer(spline)
+        detalle = self.contexto or "Datos ingresados por el usuario."
+        if self.lagrange:
+            detalle += f" Lagrange: {len(spline.x)} nodos verificados (tolerancia 10⁻⁸ × escala)."
+        self.contexto_label.configure(text=detalle)
+        self.grafica.mostrar_lagrange = self.mostrar_lagrange.get()
+        self.grafica.establecer(spline, muestras_lagrange)
         self.tabla_coef.delete(*self.tabla_coef.get_children())
         for i, t in enumerate(spline.tramos):
             self.tabla_coef.insert("", "end", iid=str(i), values=(f"S{i}", f"[{formato(t.inicio)}, {formato(t.fin)}]",
@@ -347,6 +376,10 @@ class AplicacionSpline(tk.Tk):
         self.consulta_x.insert(0, formato(x, 15))
         self.evaluar()
 
+    def _alternar_lagrange(self):
+        self.grafica.mostrar_lagrange = self.mostrar_lagrange.get()
+        self.grafica.dibujar()
+
     def evaluar(self):
         if self.spline is None:
             return
@@ -355,9 +388,23 @@ class AplicacionSpline(tk.Tk):
             indice = self.spline.indice_tramo(x)
             y = self.spline.evaluar(x)
             self.grafica.marcar(x)
+            comparacion = ""
+            if self.lagrange:
+                try:
+                    p = self.lagrange.evaluar(x)
+                    diferencia = abs(y - p)
+                    if not isfinite(diferencia):
+                        raise ErrorSpline("La diferencia excede el rango numérico.")
+                    comparacion = f"\nP(x) = {formato(p, 10)}   ·   |S(x) − P(x)| = {formato(diferencia, 10)}"
+                except ErrorSpline as exc:
+                    self.lagrange = None
+                    self.grafica.muestra_lagrange = []
+                    self.grafica.dibujar()
+                    self.control_lagrange.configure(state="disabled")
+                    self.mensaje.configure(text=f"Comparación desactivada: {exc}")
             self.resultado_consulta.configure(text=f"S({formato(x)}) = {formato(y, 10)}   ·   Tramo S{indice}   ·   "
                                                f"S' = {formato(self.spline.evaluar(x, 1))}   ·   "
-                                               f"S'' = {formato(self.spline.evaluar(x, 2))}", fg=tema.PRIMARIO_OSCURO)
+                                               f"S'' = {formato(self.spline.evaluar(x, 2))}" + comparacion, fg=tema.PRIMARIO_OSCURO)
         except ErrorSpline as exc:
             self.grafica.marcar(None)
             self.resultado_consulta.configure(text=str(exc), fg=tema.ERROR)
@@ -373,6 +420,7 @@ class AplicacionSpline(tk.Tk):
             if len(puntos) > MAX_PUNTOS:
                 raise ErrorSpline(f"El archivo excede el máximo de {MAX_PUNTOS} puntos.")
         except (OSError, UnicodeError, ErrorSpline) as exc:
+            self._invalidar()
             self.mensaje.configure(text=f"No se pudo importar: {exc}")
             return
         self._reemplazar_datos("\n".join(f"{x:.17g}; {y:.17g}" for x, y in puntos))
@@ -401,7 +449,7 @@ class AplicacionSpline(tk.Tk):
         if not ruta:
             return
         try:
-            Path(ruta).write_text(grafica_svg(self.spline), encoding="utf-8")
+            Path(ruta).write_text(grafica_svg(self.spline, lagrange=self.lagrange if self.mostrar_lagrange.get() else None), encoding="utf-8")
         except (OSError, ErrorSpline) as exc:
             self.mensaje.configure(text=f"No se pudo guardar la gráfica: {exc}")
             return
