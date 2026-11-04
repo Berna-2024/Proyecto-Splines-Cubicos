@@ -10,6 +10,8 @@ class GraficaSpline(tk.Canvas):
         super().__init__(parent, background="white", highlightthickness=0, height=320)
         self.spline = None
         self.muestra = []
+        self.muestra_lagrange = []
+        self.mostrar_lagrange = True
         self.seleccion = None
         self.al_seleccionar = al_seleccionar
         self.zona = None
@@ -24,8 +26,9 @@ class GraficaSpline(tk.Canvas):
             self.after_cancel(self._pendiente)
         self._pendiente = self.after(60, self.dibujar)
 
-    def establecer(self, spline):
+    def establecer(self, spline, muestra_lagrange=()):
         self.spline = spline
+        self.muestra_lagrange = list(muestra_lagrange)
         self.muestra = spline.muestrear() if spline else []
         self.seleccion = None
         self.dibujar()
@@ -49,7 +52,8 @@ class GraficaSpline(tk.Canvas):
                              fill=tema.SECUNDARIO, font=("Segoe UI", 12))
             return
         xmin, xmax = self.spline.x[0], self.spline.x[-1]
-        ys = [p[1] for p in self.muestra] + list(self.spline.y)
+        comparacion = self.muestra_lagrange if self.mostrar_lagrange else []
+        ys = [p[1] for p in self.muestra + comparacion] + list(self.spline.y)
         ymin, ymax = min(ys), max(ys)
         margen = (ymax - ymin) * .12 if ymax != ymin else max(1, abs(ymin) * .12)
         ymin, ymax = ymin - margen, ymax + margen
@@ -76,6 +80,9 @@ class GraficaSpline(tk.Canvas):
         plana = [v for punto in coords for v in punto]
         self.create_polygon(izquierda, abajo, *plana, derecha, abajo, fill="#F4F1FC", outline="")
         self.create_line(*plana, fill=tema.PRIMARIO, width=3, capstyle="round", joinstyle="round")
+        if comparacion:
+            self.create_line(*[v for x, y in comparacion for v in self._pantalla(x, y)],
+                             fill="#C46B16", width=2, dash=(7, 4), tags="lagrange")
         for x, y in zip(self.spline.x, self.spline.y):
             px, py = self._pantalla(x, y)
             self.create_oval(px - 5, py - 5, px + 5, py + 5, fill=tema.ACENTO, outline="white", width=2)

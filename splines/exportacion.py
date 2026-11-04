@@ -1,12 +1,19 @@
 """Figuras SVG para el informe, generadas sin bibliotecas externas."""
 
 from html import escape
+from .matematica import ErrorSpline
 
 
-def grafica_svg(spline, titulo="Spline cúbico natural"):
+def grafica_svg(spline, titulo="Spline cúbico natural", lagrange=None):
     puntos = spline.muestrear(60)
+    aviso = ""
+    try:
+        comparacion = lagrange.muestrear(x for x, _ in puntos) if lagrange else []
+    except ErrorSpline:
+        comparacion = []
+        aviso = "Lagrange omitido por limitaciones numéricas."
     xmin, xmax = spline.x[0], spline.x[-1]
-    ymin, ymax = min(y for _, y in puntos), max(y for _, y in puntos)
+    ymin, ymax = min(y for _, y in puntos + comparacion), max(y for _, y in puntos + comparacion)
     margen = (ymax - ymin) * .12 if ymax != ymin else max(1, abs(ymin) * .12)
     ymin, ymax = ymin - margen, ymax + margen
 
@@ -29,6 +36,13 @@ def grafica_svg(spline, titulo="Spline cúbico natural"):
     partes.append('<path d="M90 130V470H1020" fill="none" stroke="#A8B6CA"/>')
     coords = " ".join(f"{px:.3f},{py:.3f}" for px, py in (pantalla(x, y) for x, y in puntos))
     partes.append(f'<polyline points="{coords}" fill="none" stroke="#6554C0" stroke-width="3" stroke-linejoin="round"/>')
+    if comparacion:
+        coords_p = " ".join(f"{px:.3f},{py:.3f}" for px, py in (pantalla(x, y) for x, y in comparacion))
+        partes.append(f'<polyline points="{coords_p}" fill="none" stroke="#C46B16" stroke-width="2" stroke-dasharray="7 4"/>')
+        partes.append('<path d="M650 105h35" stroke="#C46B16" stroke-dasharray="7 4"/><text x="695" y="110" fill="#C46B16">Lagrange</text>')
+    partes.append('<path d="M90 105h35" stroke="#6554C0" stroke-width="3"/><text x="135" y="110" fill="#6554C0">Spline cúbico natural · Nodos: círculos</text>')
+    if aviso:
+        partes.append(f'<text x="650" y="110" fill="#C46B16">{escape(aviso)}</text>')
     for x, y in zip(spline.x, spline.y):
         px, py = pantalla(x, y)
         partes.append(f'<circle cx="{px:.3f}" cy="{py:.3f}" r="5" fill="#087F8C" stroke="white" stroke-width="2"><title>({x:g}; {y:g})</title></circle>')

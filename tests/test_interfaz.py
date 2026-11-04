@@ -56,6 +56,8 @@ class InterfazTests(unittest.TestCase):
         self.app.entrada.insert("end", "\n4;256")
         self.app.update()
         self.assertIsNone(self.app.spline)
+        self.assertIsNone(self.app.lagrange)
+        self.assertEqual(self.app.grafica.muestra_lagrange, [])
         self.assertEqual(str(self.app.exportar_boton.cget("state")), "disabled")
         self.assertEqual(self.app.tabla_coef.get_children(), ())
 
@@ -63,10 +65,31 @@ class InterfazTests(unittest.TestCase):
         self.app._reemplazar_datos("0;0\n0;1")
         self.app.calcular()
         self.assertIsNone(self.app.spline)
+        self.assertIsNone(self.app.lagrange)
         self.assertIn("sin repetir", self.app.mensaje.cget("text"))
         self.app.cargar_ejemplo()
         self.assertTrue(self.app.spline.valido)
         self.assertEqual(self.app.mensaje.cget("text"), "")
+
+    def test_comparacion_y_visibilidad(self):
+        self.app._seleccionar_x(1.5)
+        self.assertIn("P(x) = 4.5", self.app.resultado_consulta.cget("text"))
+        self.assertIn("0.8", self.app.resultado_consulta.cget("text"))
+        self.assertTrue(self.app.grafica.find_withtag("lagrange"))
+        self.app.mostrar_lagrange.set(False)
+        self.app._alternar_lagrange()
+        self.assertFalse(self.app.grafica.find_withtag("lagrange"))
+        self.assertIsNotNone(self.app.spline)
+        self.app.mostrar_lagrange.set(True)
+        self.app._alternar_lagrange()
+
+    def test_lagrange_inestable_conserva_spline(self):
+        self.app._reemplazar_datos("\n".join(f"{i};{i % 7}" for i in range(80)))
+        self.app.calcular()
+        self.app.update()
+        self.assertTrue(self.app.spline.valido)
+        self.assertIsNone(self.app.lagrange)
+        self.assertIn("desactivada", self.app.mensaje.cget("text"))
 
     def test_limite_de_puntos(self):
         self.app._reemplazar_datos("\n".join(f"{i};{i}" for i in range(81)))
