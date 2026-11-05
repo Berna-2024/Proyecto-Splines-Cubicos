@@ -44,7 +44,7 @@ class AplicacionSpline(tk.Tk):
             self.after(80, self.cargar_ejemplo)
 
     def _crear_interfaz(self):
-        cabecera = tk.Frame(self, bg="white", padx=28, pady=18, highlightbackground=tema.BORDE,
+        cabecera = tk.Frame(self, bg="white", padx=28, pady=8, highlightbackground=tema.BORDE,
                             highlightthickness=1)
         cabecera.grid(row=0, column=0, sticky="ew")
         etiqueta(cabecera, "S", 21, "white", True, tema.PRIMARIO, width=2).pack(side="left", padx=(0, 12))
@@ -55,34 +55,28 @@ class AplicacionSpline(tk.Tk):
         etiqueta(cabecera, "SPLINE CÚBICO NATURAL", 9, tema.PRIMARIO, True, "#F1EEFA", padx=15, pady=9).pack(side="right")
 
         cuerpo = tk.Frame(self, bg=tema.FONDO)
-        cuerpo.grid(row=1, column=0, sticky="nsew", padx=24, pady=(20, 10))
+        cuerpo.grid(row=1, column=0, sticky="nsew", padx=24, pady=(10, 10))
         cuerpo.columnconfigure(0, minsize=286)
         cuerpo.columnconfigure(1, weight=1)
         cuerpo.rowconfigure(0, weight=1)
         self._crear_entrada(cuerpo)
         principal = tk.Frame(cuerpo, bg=tema.FONDO)
         principal.grid(row=0, column=1, sticky="nsew", padx=(22, 0))
-        titulo = tk.Frame(principal, bg=tema.FONDO)
-        titulo.pack(fill="x", pady=(0, 16))
-        textos = tk.Frame(titulo, bg=tema.FONDO)
-        textos.pack(side="left", fill="x", expand=True)
-        etiqueta(textos, "De puntos a curvas suaves.", 22, negrita=True, fondo=tema.FONDO).pack(anchor="w")
-        etiqueta(textos, "Explora la curva y comprende cada paso del cálculo.", 10,
-                 tema.SECUNDARIO, fondo=tema.FONDO).pack(anchor="w", pady=(5, 0))
-        self.exportar_boton = ttk.Button(titulo, text="Exportar informe", command=self.exportar, state="disabled")
+        self.exportar_boton = ttk.Button(cabecera, text="Exportar informe", command=self.exportar, state="disabled")
         self.exportar_boton.pack(side="right", padx=(8, 0))
 
+        # Reservar la altura para el Canvas, incluso en ventanas de 710 px.
         metricas = tk.Frame(principal, bg=tema.FONDO)
-        metricas.pack(fill="x", pady=(0, 16))
+        metricas.pack(fill="x", pady=(0, 8))
         self.metricas = []
         for i, titulo_metrica in enumerate(("NODOS INGRESADOS", "TRAMOS CÚBICOS", "VALIDACIÓN")):
             metricas.columnconfigure(i, weight=1, uniform="metricas")
-            tarjeta = tk.Frame(metricas, bg="white", padx=17, pady=12,
+            tarjeta = tk.Frame(metricas, bg="white", padx=10, pady=6,
                                highlightbackground=tema.BORDE, highlightthickness=1)
             tarjeta.grid(row=0, column=i, sticky="ew", padx=(0 if i == 0 else 6, 0 if i == 2 else 6))
-            etiqueta(tarjeta, titulo_metrica, 8, tema.SECUNDARIO, True).pack(anchor="w")
-            valor = etiqueta(tarjeta, "—", 20, tema.PRIMARIO if i < 2 else tema.EXITO, True)
-            valor.pack(anchor="w", pady=(3, 0))
+            etiqueta(tarjeta, titulo_metrica, 8, tema.SECUNDARIO, True).pack(side="left")
+            valor = etiqueta(tarjeta, "—", 14, tema.PRIMARIO if i < 2 else tema.EXITO, True)
+            valor.pack(side="right", padx=(8, 0))
             self.metricas.append(valor)
 
         self.pestanas = ttk.Notebook(principal)
@@ -138,7 +132,7 @@ class AplicacionSpline(tk.Tk):
                  fondo="#F5F3FB", justify="left", padx=10, pady=10).grid(row=11, sticky="ew", pady=(12, 0))
 
     def _nueva_pestana(self, titulo):
-        frame = tk.Frame(self.pestanas, bg="white", padx=18, pady=16)
+        frame = tk.Frame(self.pestanas, bg="white", padx=18, pady=10)
         self.pestanas.add(frame, text=titulo)
         return frame
 
@@ -159,8 +153,8 @@ class AplicacionSpline(tk.Tk):
         self.grafica = GraficaSpline(frame, self._seleccionar_x)
         self.grafica.grid(row=2, column=0, sticky="nsew", pady=(10, 0))
         etiqueta(frame, "Mueve el cursor para explorar. Haz clic para evaluar un punto.", 9,
-                 tema.SECUNDARIO).grid(row=3, column=0, sticky="w", pady=(2, 15))
-        consulta = tk.Frame(frame, bg="#F6F7FB", padx=14, pady=12)
+                 tema.SECUNDARIO).grid(row=3, column=0, sticky="w", pady=(2, 6))
+        consulta = tk.Frame(frame, bg="#F6F7FB", padx=14, pady=8)
         consulta.grid(row=4, column=0, sticky="ew")
         etiqueta(consulta, "Evaluar en x", 10, negrita=True, fondo="#F6F7FB").grid(row=0, column=0, sticky="w")
         self.consulta_x = ttk.Entry(consulta, width=12)
